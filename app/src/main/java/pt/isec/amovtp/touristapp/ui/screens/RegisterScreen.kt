@@ -54,8 +54,9 @@ fun RegisterScreen(navController: NavHostController, firebaseViewModel: Firebase
         isFormValid = firstName.isNotBlank() && lastName.isNotBlank() && password.isNotBlank() && email.isNotBlank()
     }
 
-    LaunchedEffect(key1 = error) {
+    LaunchedEffect(key1 = isButtonClicked) {
         if(error == null && isButtonClicked){
+            firebaseViewModel.signOut()
             navController.navigate(Screens.LOGIN.route)
         }
     }
