@@ -37,7 +37,7 @@ class FirebaseViewModel : ViewModel() {
     val user : MutableState<User?>
         get() = _user
 
-    fun createUserWithEmail(user: User, password: String) {
+    fun createUserWithEmail(user: User, password: String, callback: () -> Unit) {
         if(user.email.isBlank() || password.isBlank())
             return
         viewModelScope.launch {
@@ -51,6 +51,7 @@ class FirebaseViewModel : ViewModel() {
                 _error.value = exception?.message
             }
             FireAuthUtil.signOut()
+            callback()
         }
     }
 

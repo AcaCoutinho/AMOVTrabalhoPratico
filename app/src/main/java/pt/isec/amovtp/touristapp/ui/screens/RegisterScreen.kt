@@ -16,6 +16,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -45,11 +46,18 @@ fun RegisterScreen(navController: NavHostController, firebaseViewModel: Firebase
     var error by remember { firebaseViewModel.error }
     var isFormValid by remember { mutableStateOf(false) }
     var isError by remember { mutableStateOf(false) }
+    var isButtonClicked by remember { mutableStateOf(false) }
 
     val focusManager = LocalFocusManager.current
 
     fun validateForm () {
         isFormValid = firstName.isNotBlank() && lastName.isNotBlank() && password.isNotBlank() && email.isNotBlank()
+    }
+
+    LaunchedEffect(key1 = error) {
+        if(error == null && isButtonClicked){
+            navController.navigate(Screens.LOGIN.route)
+        }
     }
 
     Column (
@@ -62,6 +70,7 @@ fun RegisterScreen(navController: NavHostController, firebaseViewModel: Firebase
         if (isError || error != null) {
             ErrorAlertDialog {
                 isError = false
+                isButtonClicked = false
                 error = null
             }
         }
@@ -161,9 +170,9 @@ fun RegisterScreen(navController: NavHostController, firebaseViewModel: Firebase
                     isError = true
                 } else {
                     val user = User(email, firstName, lastName)
-                    firebaseViewModel.createUserWithEmail(user, password)
-                    if(firebaseViewModel.error.value == null)
-                        navController.navigate(Screens.LOGIN.route)
+                    firebaseViewModel.createUserWithEmail(user, password) {
+                        isButtonClicked = true
+                    }
                 }
             },
             colors = ButtonDefaults.buttonColors(MaterialTheme.colorScheme.primary),
