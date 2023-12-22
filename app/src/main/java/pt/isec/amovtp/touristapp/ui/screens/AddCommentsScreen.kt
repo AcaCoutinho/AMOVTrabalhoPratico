@@ -1,6 +1,7 @@
 package pt.isec.amovtp.touristapp.ui.screens
 
 import android.os.Build
+import android.widget.Toast
 import androidx.annotation.RequiresApi
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -20,6 +21,8 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CutCornerShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -30,6 +33,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -40,6 +44,7 @@ import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.layout.HorizontalAlignmentLine
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
@@ -48,6 +53,7 @@ import org.osmdroid.util.GeoPoint
 import org.osmdroid.views.MapView
 import org.osmdroid.views.overlay.Marker
 import pt.isec.amovtp.touristapp.data.Comment
+import pt.isec.amovtp.touristapp.ui.composables.RatingBar
 import pt.isec.amovtp.touristapp.ui.viewmodels.FirebaseViewModel
 import pt.isec.amovtp.touristapp.ui.viewmodels.LocationViewModel
 import java.time.LocalDateTime
@@ -61,6 +67,15 @@ fun AddCommentsScreen(modfier: Modifier.Companion, locationViewModel: LocationVi
     var isInputEnabled by remember { mutableStateOf(true) }
     var charLimitExceeded by remember { mutableStateOf(false) }
     var alreadyComment by remember { mutableStateOf(false) }
+    var alreadyRated by remember { mutableStateOf(false) }
+
+    var myRating by remember { mutableIntStateOf(0) }
+    var rating by remember { mutableIntStateOf(0) }
+    var isRatingEnabled by remember { mutableStateOf(true) }
+    val context = LocalContext.current
+    val userName = firebaseViewModel.user.value?.firstName + " " + firebaseViewModel.user.value?.lastName
+    val userUID = firebaseViewModel.authUser.value!!.uid
+    val date = getDate()
 
     var comments by remember {
         mutableStateOf<List<Comment?>>(emptyList())
@@ -70,9 +85,11 @@ fun AddCommentsScreen(modfier: Modifier.Companion, locationViewModel: LocationVi
         firebaseViewModel.getCommentsFromFirestore(selectedLocation,selectedPoi) { loadedComments ->
             comments = loadedComments
             for (c in comments) {
-                if (c?.userUID == firebaseViewModel.authUser.value?.uid) {
+                if (c?.userUID == firebaseViewModel.authUser.value?.uid && c?.description != "") {
                     alreadyComment = true
-                    break
+                }
+                if(c?.userUID == firebaseViewModel.authUser.value?.uid && c?.rating != 0){
+                    alreadyRated = true
                 }
             }
         }
@@ -101,7 +118,7 @@ fun AddCommentsScreen(modfier: Modifier.Companion, locationViewModel: LocationVi
                     .fillMaxWidth()
                     .border(1.dp, Color.Gray, RoundedCornerShape(4.dp))
                     .padding(8.dp)
-                    .weight(0.5f)
+                    .weight(0.8f)
             ) {
                 Column(
                     modifier = Modifier
@@ -129,10 +146,12 @@ fun AddCommentsScreen(modfier: Modifier.Companion, locationViewModel: LocationVi
                             else {
                                 charLimitExceeded = false
                                 isInputEnabled = false
-                                val userName = firebaseViewModel.user.value?.firstName + " " + firebaseViewModel.user.value?.lastName
-                                val userUID = firebaseViewModel.authUser.value!!.uid
-                                val date = getDate()
-                                firebaseViewModel.addCommentToFirestore(Comment(commentToSubmit,userName, userUID,date),selectedLocation,selectedPoi)
+                                for (c in comments) {
+                                    if (c?.userUID == firebaseViewModel.authUser.value?.uid) {
+                                        rating = c!!.rating
+                                    }
+                                }
+                                firebaseViewModel.addCommentToFirestore(Comment(commentToSubmit,userName, userUID,date,rating),selectedLocation,selectedPoi)
                                 //atualizar a lista
                                 firebaseViewModel.getCommentsFromFirestore(selectedLocation, selectedPoi) { loadedComments ->
                                     comments = loadedComments
@@ -143,11 +162,64 @@ fun AddCommentsScreen(modfier: Modifier.Companion, locationViewModel: LocationVi
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(top = 8.dp),
+
                         colors = ButtonDefaults.buttonColors(MaterialTheme.colorScheme.primary),
                         shape = CutCornerShape(percent = 0)
                     ) {
                         Text(text = "Submit Comment")
                     }
+                }
+            }
+        if(alreadyRated)
+            Text(text = "You already rated", color = Color.Green, fontSize = 16.sp)
+        if(!alreadyRated)
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .border(1.dp, Color.Gray, RoundedCornerShape(4.dp))
+                    .padding(8.dp)
+                    .weight(0.5f)
+            ){
+                Spacer(Modifier.height(16.dp))
+                Column(
+                    verticalArrangement = Arrangement.Top,
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(8.dp)
+                ) {
+                    RatingBar(
+                        currentRating = myRating,
+                        onRatingChanged = {
+                            if (isRatingEnabled) {
+                                myRating = it
+                            }
+                        },
+                        starsColor = Color.Yellow,
+                        size = 48.dp
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Button(
+                        onClick = {
+                            isRatingEnabled = false
+                            rating = myRating
+                            for (c in comments) {
+                                if (c?.userUID == firebaseViewModel.authUser.value?.uid) {
+                                    commentToSubmit = c!!.description
+                                }
+                            }
+                            firebaseViewModel.addCommentToFirestore(Comment(commentToSubmit,userName, userUID,date,rating),selectedLocation,selectedPoi)
+                            //atualizar a lista
+                            firebaseViewModel.getCommentsFromFirestore(selectedLocation, selectedPoi) { loadedComments ->
+                                comments = loadedComments
+                            }
+                            Toast.makeText(context, "Classificação submetida com sucesso!", Toast.LENGTH_LONG).show()
+                        },
+                        enabled = isRatingEnabled
+                    ) {
+                        Text(text = "Submeter Classificação")
+                    }
+
                 }
             }
 
@@ -187,6 +259,12 @@ fun AddCommentsScreen(modfier: Modifier.Companion, locationViewModel: LocationVi
                                 fontSize = 14.sp,
                                 modifier = Modifier.weight(1f)
                             )
+                            if(comment.rating != 0)
+                                Text(
+                                    text = comment.rating.toString()+ "*", //+ Icons.Filled.Star,
+                                    fontSize = 14.sp,
+                                    modifier = Modifier.weight(0.5f)
+                                )
                             Text(
                                 text = comment.date,
                                 fontSize = 14.sp,
@@ -195,7 +273,8 @@ fun AddCommentsScreen(modfier: Modifier.Companion, locationViewModel: LocationVi
                             )
                         }
                         Spacer(modifier = Modifier.height(4.dp))
-                        Text(text = comment!!.description, fontSize = 20.sp)
+                        if(comment?.description != "")
+                            Text(text = comment!!.description, fontSize = 20.sp)
                     }
                 }
 

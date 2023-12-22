@@ -3,6 +3,8 @@ package pt.isec.amovtp.touristapp.ui.screens
 import android.graphics.drawable.ShapeDrawable
 import android.graphics.drawable.shapes.OvalShape
 import android.util.Log
+import android.widget.RatingBar
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -28,6 +30,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -36,6 +39,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -44,14 +48,29 @@ import org.osmdroid.tileprovider.tilesource.TileSourceFactory
 import org.osmdroid.util.GeoPoint
 import org.osmdroid.views.MapView
 import org.osmdroid.views.overlay.Marker
+import pt.isec.amovtp.touristapp.data.Location
 import pt.isec.amovtp.touristapp.data.PointOfInterest
+import pt.isec.amovtp.touristapp.ui.composables.RatingBar
 import pt.isec.amovtp.touristapp.ui.viewmodels.FirebaseViewModel
 import pt.isec.amovtp.touristapp.ui.viewmodels.LocationViewModel
 
 @Composable
 fun POIDescriptionScreen(modifier: Modifier = Modifier, viewModel: LocationViewModel,firebaseViewModel: FirebaseViewModel) {
-
+    var myRating by remember { mutableIntStateOf(0) }
+    val context = LocalContext.current
+    var isRatingEnabled by remember { mutableStateOf(true) }
     val currentPoi = viewModel.selectedPoi
+
+    /*
+    //Todo:Lista de ratings
+    val allRatings by remember {
+        mutableStateOf<List<Ratings>>(
+            listOf(Ratings(1,"ton","","hoje"),Ratings(1,"name","","hoje"),Ratings(3,"nig","","hoje"))
+        )
+    }
+
+     */
+
 
     val currentGeoPoint by remember{ mutableStateOf(GeoPoint(
        currentPoi?.latitude ?: 0.0, currentPoi?.longitude ?: 0.0
@@ -75,8 +94,6 @@ fun POIDescriptionScreen(modifier: Modifier = Modifier, viewModel: LocationViewM
         verticalArrangement = Arrangement.SpaceBetween,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-
-        Spacer(Modifier.height(16.dp))
         Box (
             modifier = Modifier
                 .padding(8.dp)
@@ -117,91 +134,7 @@ fun POIDescriptionScreen(modifier: Modifier = Modifier, viewModel: LocationViewM
                     }
                 )
         }
-        Spacer(Modifier.height(16.dp))
 
-        Button(
-            onClick = { /* TODO: Ecrã de adicionar comentário */ },
-            modifier = Modifier
-                .padding(8.dp),
-            colors = ButtonDefaults.buttonColors(MaterialTheme.colorScheme.primary),
-            shape = CutCornerShape(percent = 0)
-        ) {
-            Text(text = "Add Comment", maxLines = 2)
-        }
-        Button(
-            onClick = { /* TODO: Ecrã de adicionar classificação */ },
-            modifier = Modifier.padding(8.dp),
-            colors = ButtonDefaults.buttonColors(MaterialTheme.colorScheme.primary),
-            shape = CutCornerShape(percent = 0)
-        ) {
-            Text(text = "Add Rating", maxLines = 2)
-        }
-        Button(
-            onClick = { /* TODO: Ecrã de adicionar fotografia */ },
-            modifier = Modifier.padding(8.dp),
-            colors = ButtonDefaults.buttonColors(MaterialTheme.colorScheme.primary),
-            shape = CutCornerShape(percent = 0)
-        ) {
-            Text(text = "Add Photo", maxLines = 2)
-        }
 
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-        ) {
-            items(pois) { poi->
-                Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(8.dp),
-                    elevation = CardDefaults.cardElevation(4.dp),
-                    colors = CardDefaults.cardColors(
-                        containerColor = Color(128,192,255)
-                    ),
-                    onClick = {
-                        //geoPoint = GeoPoint(it.latitude,it.longitude)
-                    }
-                ) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(8.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        Text(text = "Comment", fontSize = 20.sp)
-                        //Text(text = "${it.latitude} ${it.longitude}", fontSize = 14.sp)
-                    }
-                }
-            }
-        }
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-        ) {
-            items(pois) { poi->
-                Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(8.dp),
-                    elevation = CardDefaults.cardElevation(4.dp),
-                    colors = CardDefaults.cardColors(
-                        containerColor = Color(128,192,255)
-                    ),
-                    onClick = {
-                        //geoPoint = GeoPoint(it.latitude,it.longitude)
-                    }
-                ) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(8.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        Text(text = "Photo", fontSize = 20.sp)
-                        //Text(text = "${it.latitude} ${it.longitude}", fontSize = 14.sp)
-                    }
-                }
-            }
-        }
     }
 }

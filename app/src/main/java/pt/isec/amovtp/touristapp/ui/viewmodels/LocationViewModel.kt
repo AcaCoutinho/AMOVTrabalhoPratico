@@ -29,17 +29,8 @@ class LocationViewModel(private val locationHandler: LocationHandler) : ViewMode
     val imagePath : MutableState<String?> = mutableStateOf(null)
     var selectedLocation by mutableStateOf<LocationData?>(null)
     var selectedPoi by mutableStateOf<PointOfInterest?>(null)
-    var selectedCategory by mutableStateOf<Category?>(null)
+    var selectedCategory by mutableStateOf<Category?>(Category("All","",""))
 
-
-
-    val category = Category("Categoria Teste","","")
-    val POIs = listOf(
-        PointOfInterest("La Sagrada Familia", "AAAAAAA",41.4036, 2.1744, "R.drawable.acacio",category),
-        PointOfInterest("Camp Nou", "BAA",41.38087, 2.122802, "R.drawable.acacio",category)
-        //Coordinates("La Sagrada Familia", 41.4036, 2.1744, R.drawable.acacio),
-        //Coordinates("Camp Nou", 41.38087, 2.122802, R.drawable.acacio),
-    )
     // Permissions
     var coarseLocationPermission = false
     var fineLocationPermission = false

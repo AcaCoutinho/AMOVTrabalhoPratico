@@ -89,14 +89,7 @@ fun ShowMapScreen(modifier: Modifier = Modifier, navController: NavHostControlle
                                 isFlat = true
                             }
                         )
-                        for (poi in viewModel.POIs)
-                            overlays.add(
-                                Marker(this).apply {
-                                    position = GeoPoint(poi.latitude, poi.longitude)
-                                    setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
-                                    title = poi.name
-                                }
-                            )
+
                     }
                 },
                 update = { view ->

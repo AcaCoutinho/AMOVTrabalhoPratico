@@ -31,10 +31,6 @@ fun DropDownComposable(modifier: Modifier = Modifier, navController: NavHostCont
         mutableStateOf<List<Category>>(emptyList())
     }
 
-
-
-
-
     //sempre que é iniciado, carrega as categorias
     LaunchedEffect(Unit) {
         firebaseViewModel.getCategoriesFromFirestore(){ loadedCategories ->
@@ -60,6 +56,13 @@ fun DropDownComposable(modifier: Modifier = Modifier, navController: NavHostCont
             expanded = isExpanded,
             onDismissRequest = {isExpanded=false }
         ) {
+            DropdownMenuItem(
+                text = { Text(text = "Tudo") },
+                onClick = {
+                    viewModel.selectedCategory = Category("All","","")
+                    isExpanded=false
+                }
+            )
             for( c in categories)
                 DropdownMenuItem(
                     text = { Text(text = c.name) },

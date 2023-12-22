@@ -232,7 +232,7 @@ fun AddPOIScreen(modifier: Modifier.Companion, navController: NavHostController?
                     var POI = PointOfInterest(
                         name = poiName,
                         description = poiDescription,
-                        category = selectedCategory ?: Category("null","",""),
+                        category = selectedCategory ?: Category("","",""),
                         latitude = latitude.toDouble(),
                         longitude = longitude.toDouble(),
                         photoUrl = ""
