@@ -94,7 +94,7 @@ fun MainScreen(navController:NavHostController = rememberNavController(),
                         }
                     },
                     actions = {
-                        if (Screens.valueOf(currentScreen!!.destination.route!!) != Screens.LOGIN)
+                        if (Screens.valueOf(currentScreen!!.destination.route!!) != Screens.LOGIN && Screens.valueOf(currentScreen!!.destination.route!!) != Screens.REGISTER)
                         IconButton(onClick = {
                             firebaseViewModel.signOut()
                             navController.navigate(Screens.LOGIN.route) {

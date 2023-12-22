@@ -38,7 +38,7 @@ data class Students (var name: String, var image: Painter, var number: String)
 fun CreditsScreen(modifier: Modifier = Modifier) {
     val students = listOf(
         Students("Acácio Agabalayeve Coutinho", painterResource(id = R.drawable.acacio), "2020141948"),
-        Students("José Pedro Sousa Almeida", painterResource(id = R.drawable.acacio), "2020141980")
+        Students("José Pedro Sousa Almeida", painterResource(id = R.drawable.jose), "2020141980")
     )
 
     Column (
@@ -103,6 +103,7 @@ fun CreditsScreen(modifier: Modifier = Modifier) {
                                     BorderStroke(1.dp, MaterialTheme.colorScheme.onPrimary),
                                     CircleShape
                                 )
+                                .size(200.dp)
                         )
                         Text(
                             text = it.name,
