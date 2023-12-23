@@ -5,15 +5,14 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CutCornerShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.verticalScroll
@@ -21,6 +20,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -37,6 +37,7 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import pt.isec.amovtp.touristapp.data.Location
+import pt.isec.amovtp.touristapp.ui.composables.ErrorAlertDialog
 import pt.isec.amovtp.touristapp.ui.composables.TakePhotoOrLoadFromGallery
 import pt.isec.amovtp.touristapp.ui.viewmodels.FirebaseViewModel
 import pt.isec.amovtp.touristapp.ui.viewmodels.LocationViewModel
@@ -45,20 +46,18 @@ import pt.isec.amovtp.touristapp.ui.viewmodels.LocationViewModel
 @Composable
 fun AddLocationScreen(modifier: Modifier.Companion, navController: NavHostController?,locationViewModel: LocationViewModel, firebaseViewModel: FirebaseViewModel) {
     val context = LocalContext.current
+    val location = locationViewModel.currentLocation.observeAsState()
+    val focusManager = LocalFocusManager.current
+
     var locationName by remember { mutableStateOf("") }
     var locationDescription by remember { mutableStateOf("") }
-    var longitude by remember { mutableStateOf("") }
-    var latitude by remember { mutableStateOf("") }
+    var longitude by remember { mutableStateOf((location.value?.longitude ?: 0.0).toString()) }
+    var latitude by remember { mutableStateOf((location.value?.latitude ?: 0.0).toString()) }
     var isFormValid by remember { mutableStateOf(false) }
     var isInputEnabled by remember { mutableStateOf(false) }
     var isError by remember { mutableStateOf(false) }
     var writenCoords by remember { mutableStateOf(false) }
     val userUID = firebaseViewModel.authUser.value!!.uid
-
-    val focusManager = LocalFocusManager.current
-
-    val location = locationViewModel.currentLocation.observeAsState()
-
 
     fun validateForm() {
         val longitudeDouble: Double? = longitude.toDoubleOrNull()
@@ -82,17 +81,9 @@ fun AddLocationScreen(modifier: Modifier.Companion, navController: NavHostContro
     ) {
 
         if(isError)
-            Text(
-                text = "Preencher todos os campos (corretamente)",
-                modifier = Modifier
-                    .align(Alignment.CenterHorizontally),
-                color = Color.Red
-            )
-        Text(
-            text = "Location Name",
-            modifier = Modifier
-                .align(Alignment.CenterHorizontally)
-        )
+            ErrorAlertDialog {
+                isError = false
+            }
 
         OutlinedTextField(
             value = locationName,
@@ -105,33 +96,33 @@ fun AddLocationScreen(modifier: Modifier.Companion, navController: NavHostContro
                 focusManager.moveFocus(FocusDirection.Next)
             },
             label = { Text(text = "Location Name") },
+            modifier = Modifier.fillMaxWidth()
 
         )
         Spacer(modifier = Modifier.height(16.dp))
-        Text(
-            text = "Location Description",
-            modifier = Modifier
-                .align(Alignment.CenterHorizontally)
-        )
+
         OutlinedTextField(
             value = locationDescription,
             onValueChange ={
                 locationDescription = it
                 validateForm()
             },
-            singleLine = true,
+            maxLines = 2,
             keyboardActions = KeyboardActions {
                 focusManager.clearFocus()
             },
             label = { Text(text = "Location Description") },
+            modifier = Modifier.fillMaxWidth()
         )
 
         Row(
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier
                 .fillMaxWidth()
-                .height(IntrinsicSize.Min)
-                .padding(16.dp)
+                .padding(0.dp, 12.dp)
         ) {
+
             Button(
                 onClick = {
                     isInputEnabled = false;
@@ -140,16 +131,15 @@ fun AddLocationScreen(modifier: Modifier.Companion, navController: NavHostContro
                     writenCoords = false
                     validateForm()
 
+
                 },
-                modifier = Modifier
-                    .weight(1f)
-                    .height(96.dp)
-                    .padding(end = 8.dp),
-                colors = ButtonDefaults.buttonColors(MaterialTheme.colorScheme.primary),
-                shape = CutCornerShape(percent = 0)
-                ) {
-                Text(text = "Get coordinates from current location")
-                }
+                modifier = Modifier.padding(4.dp, 0.dp)
+            )
+            Text(
+                text = "Write coordinates",
+                modifier = Modifier.padding(8.dp, 0.dp)
+            )
+        }
 
             Button(
                 onClick = {
@@ -157,43 +147,30 @@ fun AddLocationScreen(modifier: Modifier.Companion, navController: NavHostContro
                     writenCoords = true
                     validateForm()
                 },
-                modifier = Modifier
-                    .weight(1f)
-                    .height(96.dp)
-                    .padding(end = 8.dp),
-                colors = ButtonDefaults.buttonColors(MaterialTheme.colorScheme.primary),
-                shape = CutCornerShape(percent = 0)
-                ) {
-                Text(text = "Write coordinates")
-            }
+                singleLine = true,
+                keyboardActions = KeyboardActions {
+                    focusManager.moveFocus(FocusDirection.Next)
+                },
+                label = { Text(text = "Longitude") },
+                enabled = isInputEnabled,
+                modifier = Modifier.weight(1f, false)
+            )
+            Spacer(Modifier.width(8.dp))
+            OutlinedTextField(
+                value = latitude,
+                onValueChange ={
+                    latitude = it
+                    validateForm()
+                },
+                singleLine = true,
+                keyboardActions = KeyboardActions {
+                    focusManager.clearFocus()
+                },
+                label = { Text(text = "Latitude") },
+                enabled = isInputEnabled,
+                modifier = Modifier.weight(1f, false)
+            )
         }
-
-        OutlinedTextField(
-            value = longitude,
-            onValueChange ={
-                longitude = it
-                validateForm()
-            },
-            singleLine = true,
-            keyboardActions = KeyboardActions {
-                focusManager.moveFocus(FocusDirection.Next)
-            },
-            label = { Text(text = "Longitude") },
-            enabled = isInputEnabled
-        )
-        OutlinedTextField(
-            value = latitude,
-            onValueChange ={
-                latitude = it
-                validateForm()
-            },
-            singleLine = true,
-            keyboardActions = KeyboardActions {
-                focusManager.clearFocus()
-            },
-            label = { Text(text = "Latitude") },
-            enabled = isInputEnabled
-        )
         Box(
             modifier = Modifier
                 .fillMaxSize()
