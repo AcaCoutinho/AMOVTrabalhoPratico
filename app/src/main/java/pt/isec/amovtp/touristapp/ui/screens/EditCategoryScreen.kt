@@ -160,8 +160,14 @@ fun EditCategoryScreen(modifier: Modifier, navController: NavHostController?, lo
 
         Button(
             onClick = {
-                val category = Category(categoryName, categoryDescription, selectedIcon!!.name,selectedCategory!!.totalPois,selectedCategory.approvals,
-                    selectedCategory.userUIDsApprovals,userUID)
+                val category = Category(
+                    categoryName,
+                    categoryDescription,
+                    selectedIcon!!.name,
+                    selectedCategory!!.totalPois,
+                    0,
+                    emptyList(),
+                    userUID)
                 firebaseViewModel.addCategoryToFirestore(category) {
                     navController?.popBackStack()
                 }

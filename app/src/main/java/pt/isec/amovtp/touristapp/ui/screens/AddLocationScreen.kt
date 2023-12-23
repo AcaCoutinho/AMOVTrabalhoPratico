@@ -199,7 +199,7 @@ fun AddLocationScreen(modifier: Modifier.Companion, navController: NavHostContro
                         photoUrl = "",
                         writenCoords = writenCoords,
                         approvals = 0,
-                        userUIDsApprovals =  emptyList(),
+                        userUIDsApprovals = emptyList(),
                         userUID = userUID,
                         totalPois = 0
                     )
