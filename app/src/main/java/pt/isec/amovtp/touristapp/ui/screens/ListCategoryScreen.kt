@@ -23,6 +23,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CutCornerShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.DeleteForever
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.Button
@@ -71,6 +72,7 @@ fun ListCategoryScreen(modifier: Modifier = Modifier, viewModel: LocationViewMod
     val context = LocalContext.current
     var isRatingEnabled by remember { mutableStateOf(true) }
     val currentPoi = viewModel.selectedPoi
+    val userUID = firebaseViewModel.authUser.value!!.uid
 
 
     var categories by remember {
@@ -81,6 +83,11 @@ fun ListCategoryScreen(modifier: Modifier = Modifier, viewModel: LocationViewMod
     LaunchedEffect(Unit) {
         firebaseViewModel.getCategoriesFromFirestore(){ loadedCategories ->
             categories = loadedCategories
+            for (c in categories) {
+                if (userUID in c.userUIDsApprovals || userUID == c.userUID) {
+                    c.enableBtn = false
+                }
+            }
         }
     }
 
@@ -126,39 +133,77 @@ fun ListCategoryScreen(modifier: Modifier = Modifier, viewModel: LocationViewMod
                             fontSize = 16.sp,
                             color = MaterialTheme.colorScheme.onSurface
                         )
-
+                        //if(location.approvals < 2) {
                         //if(category.userUID == userUID) {
+                        //}
+
+
                         Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.SpaceEvenly
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(IntrinsicSize.Min),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
-                            IconButton(
-                                onClick = {
-                                    //viewModel.selectedLocation = location
-                                    //navController?.navigate(Screens.EDIT_LOCATION.route)
-                                },
-                                modifier = Modifier.padding(8.dp),
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.Edit,
-                                    contentDescription = null
-                                )
+                            Row (
+                                verticalAlignment = Alignment.CenterVertically
+                            ){
+                                IconButton(
+                                    onClick = {
+                                        firebaseViewModel.updateAprovalCategoryInFirestore(
+                                            category,
+                                            userUID
+                                        )
+                                        firebaseViewModel.getCategoriesFromFirestore(){ loadedCategories ->
+                                            categories = loadedCategories
+                                            for (c in categories) {
+                                                if (userUID in c.userUIDsApprovals || userUID == c.userUID) {
+                                                    c.enableBtn = false
+                                                }
+                                            }
+                                        }
+                                    },
+                                    modifier = Modifier.padding(8.dp),
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.CheckCircle,
+                                        contentDescription = null
+                                    )
+                                }
+                                Text("${category.approvals}/2") // Uncomment this line if needed
                             }
 
-                            IconButton(
-                                onClick = {
-                                    Toast.makeText(context, "s", Toast.LENGTH_LONG).show()
-                                },
-                                modifier = Modifier.padding(8.dp),
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.SpaceEvenly
                             ) {
-                                Icon(
-                                    imageVector = Icons.Default.DeleteForever,
-                                    contentDescription = null
-                                )
+                                IconButton(
+                                    onClick = {
+                                        // Handle click for the Edit IconButton
+                                    },
+                                    modifier = Modifier.padding(8.dp),
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Edit,
+                                        contentDescription = null
+                                    )
+                                }
+
+                                IconButton(
+                                    onClick = {
+                                        // Handle click for the Delete IconButton
+                                        Toast.makeText(context, "s", Toast.LENGTH_LONG).show()
+                                    },
+                                    modifier = Modifier.padding(8.dp),
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.DeleteForever,
+                                        contentDescription = null
+                                    )
+                                }
                             }
                         }
 
-                        //}
 
                     }
 

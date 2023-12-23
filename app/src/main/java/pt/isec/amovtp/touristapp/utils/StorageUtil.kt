@@ -89,6 +89,26 @@ class StorageUtil {
                 }
         }
 
+        fun updateApprovalCategoryInFirestore(category: Category,userUID: String ,onResult: (Throwable?) -> Unit) {
+            val db = Firebase.firestore
+
+            val num = category.approvals + 1
+            val updatedUserUIDs = category.userUIDsApprovals.toMutableList().apply {
+                add(userUID)
+            }
+            val locationData = hashMapOf(
+                "Approvals" to num as Any,
+                "UserUIDs" to updatedUserUIDs
+            )
+
+            db.collection(Collections.Category.route)
+                .document(category.name)
+                .update(locationData)
+                .addOnCompleteListener { result ->
+                    onResult(result.exception)
+                }
+        }
+
         fun updateAprovalPOIsFirestore(location: Location?, poi: PointOfInterest, userUID: String, onResult: (Throwable?) -> Unit) {
             val db = Firebase.firestore
 
@@ -344,7 +364,8 @@ class StorageUtil {
                             Log.i(TAG, "getPoisFromFirestore: " + categoryData.toString())
                             Log.i(TAG, "getPoisFromFirestore DESCRICAO: " +catDesc)
 
-                            val pointOfInterest = PointOfInterest(name, description, latitude, longitude, imageUrl,Category(catName,catIcon,catDesc),writenCoords,approvals,userUIDs,userUID)
+                            val pointOfInterest = PointOfInterest(name, description, latitude, longitude, imageUrl,Category(catName,catIcon,catDesc,-1,
+                                emptyList(),""),writenCoords,approvals,userUIDs,userUID)
                             pois.add(pointOfInterest)
                         } catch (e: Exception) {
                             Log.e(TAG, "Error parsing POI document: ${e.message}")
@@ -370,7 +391,11 @@ class StorageUtil {
                         val name = document.id
                         val description = document.getString("Description") ?: ""
                         val icon = document.getString("Icon") ?: ""
-                        val category = Category(name, description,icon)
+                        val approvals  = document.getLong("Approvals")?.toInt() ?: 0
+                        val userUIDs = document.get("UserUIDs") as? List<String> ?: emptyList()
+                        val userUID = document.getString("UserUID") ?: ""
+
+                        val category = Category(name, description,icon,approvals,userUIDs,userUID)
                         categories.add(category)
                     }
                     callback(categories)

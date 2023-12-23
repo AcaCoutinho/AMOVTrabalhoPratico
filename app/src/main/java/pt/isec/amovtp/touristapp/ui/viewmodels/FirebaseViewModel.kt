@@ -122,6 +122,13 @@ class FirebaseViewModel : ViewModel() {
             }
         }
     }
+    fun updateAprovalCategoryInFirestore(category: Category, userUID: String) {
+        viewModelScope.launch {
+            StorageUtil.updateApprovalCategoryInFirestore (category,userUID) { exception ->
+                _error.value = exception?.message
+            }
+        }
+    }
     fun addPOIToFirestore(locationName:String, poi: PointOfInterest) {
         viewModelScope.launch {
             StorageUtil.addPOIToFirestore(locationName,poi){ exception ->
@@ -190,6 +197,7 @@ class FirebaseViewModel : ViewModel() {
         callback()
     }
 
+
     fun getCategoriesFromFirestore(callback: (List<Category>) -> Unit) {
         viewModelScope.launch {
             StorageUtil.getCategoryFromFirestore () { categories ->
@@ -213,7 +221,6 @@ class FirebaseViewModel : ViewModel() {
             }
         }
     }
-
 
 
 

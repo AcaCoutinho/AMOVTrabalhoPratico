@@ -115,7 +115,7 @@ fun POIScreen(modifier: Modifier = Modifier, navController: NavHostController?, 
             verticalAlignment = Alignment.Top
         ) {
             IconButton(onClick = {
-                viewModel.selectedCategory = Category("","","")
+                viewModel.selectedCategory = Category("","","",0, emptyList(),"",false)
             }) {
                 Icon(imageVector = Default.RestartAlt, contentDescription = "")
             }

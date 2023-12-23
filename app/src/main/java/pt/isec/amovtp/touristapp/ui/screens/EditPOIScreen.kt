@@ -242,7 +242,7 @@ fun EditPOIScreen(modifier: Modifier.Companion, navController: NavHostController
                     var POI = PointOfInterest(
                         name = poiName,
                         description = poiDescription,
-                        category = selectedCategory ?: Category("","",""),
+                        category = selectedCategory ?: Category("","","",0, emptyList(),""),
                         latitude = latitude.toDouble(),
                         longitude = longitude.toDouble(),
                         photoUrl = "",

@@ -76,7 +76,7 @@ fun AddCategoryScreen(modifier: Modifier, navController: NavHostController?, fir
     var categoryDescription by remember { mutableStateOf("") }
     val scrollState = rememberScrollState()
     val focusManager = LocalFocusManager.current
-
+    val userUID = firebaseViewModel.authUser.value!!.uid
     Column(
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -155,7 +155,8 @@ fun AddCategoryScreen(modifier: Modifier, navController: NavHostController?, fir
 
         Button(
             onClick = {
-                val category = Category(categoryName, categoryDescription, selectedIcon!!.name)
+                val category = Category(categoryName, categoryDescription, selectedIcon!!.name,0,
+                    emptyList(),userUID)
                 firebaseViewModel.addCategoryToFirestore(category) {
                     navController?.popBackStack()
                 }
