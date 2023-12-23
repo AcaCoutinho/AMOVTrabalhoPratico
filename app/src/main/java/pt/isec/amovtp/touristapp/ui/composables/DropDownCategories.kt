@@ -103,7 +103,7 @@ fun DropDownComposable(
                         viewModel.selectedCategory = c
                         isExpanded=false
                     },
-                    leadingIcon = {Icon(getImageVectorFromName(c.name)!!, contentDescription = c.name)}
+                    leadingIcon = { Icon(getImageVectorFromName(c.icon)!!, contentDescription = c.name) }
                 )
             DropdownMenuItem(
                 text = { Text(text = "Add new category") },
