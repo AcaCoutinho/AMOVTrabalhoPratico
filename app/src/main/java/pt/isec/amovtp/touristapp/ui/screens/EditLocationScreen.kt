@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CutCornerShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.verticalScroll
@@ -21,6 +20,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -34,9 +34,12 @@ import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import pt.isec.amovtp.touristapp.data.Location
+import pt.isec.amovtp.touristapp.ui.composables.ErrorAlertDialog
 import pt.isec.amovtp.touristapp.ui.composables.TakePhotoOrLoadFromGallery
 import pt.isec.amovtp.touristapp.ui.viewmodels.FirebaseViewModel
 import pt.isec.amovtp.touristapp.ui.viewmodels.LocationViewModel
@@ -45,22 +48,20 @@ import pt.isec.amovtp.touristapp.ui.viewmodels.LocationViewModel
 fun EditLocationScreen( navController: NavHostController?, locationViewModel: LocationViewModel, firebaseViewModel: FirebaseViewModel) {
     //location atual
     val selectedLocation = locationViewModel.selectedLocation
-
+    val userUID = firebaseViewModel.authUser.value!!.uid
+    val focusManager = LocalFocusManager.current
+    val location = locationViewModel.currentLocation.observeAsState()
 
     val context = LocalContext.current
     var locationName by remember { mutableStateOf(selectedLocation!!.name) }
     var locationDescription by remember { mutableStateOf(selectedLocation!!.description) }
     var longitude by remember { mutableStateOf(selectedLocation!!.longitude.toString()) }
     var latitude by remember { mutableStateOf(selectedLocation!!.latitude.toString()) }
+
     var isFormValid by remember { mutableStateOf(false) }
     var isInputEnabled by remember { mutableStateOf(false) }
     var isError by remember { mutableStateOf(false) }
     var writenCoords by remember { mutableStateOf(selectedLocation!!.writenCoords) }
-    val userUID = firebaseViewModel.authUser.value!!.uid
-
-    val focusManager = LocalFocusManager.current
-
-    val location = locationViewModel.currentLocation.observeAsState()
 
 
     fun validateForm() {
@@ -80,43 +81,22 @@ fun EditLocationScreen( navController: NavHostController?, locationViewModel: Lo
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier
             .fillMaxSize()
-            .padding(24.dp)
+            .padding(16.dp)
             .verticalScroll(rememberScrollState())
     ) {
-
         if(isError)
-            Text(
-                text = "Preencher todos os campos (corretamente)",
-                modifier = Modifier
-                    .align(Alignment.CenterHorizontally),
-                color = Color.Red
-            )
+            ErrorAlertDialog {
+                isError = false
+            }
+
         Text(
-            text = "Location Name",
-            modifier = Modifier
-                .align(Alignment.CenterHorizontally)
+            text = locationName,
+            textAlign = TextAlign.Center,
+            fontSize = 24.sp,
+            modifier = Modifier.fillMaxWidth()
         )
 
-        OutlinedTextField(
-            value = locationName,
-            onValueChange ={
-                locationName = it
-                validateForm()
-            },
-            singleLine = true,
-            keyboardActions = KeyboardActions {
-                focusManager.moveFocus(FocusDirection.Next)
-            },
-            enabled = false,
-            label = { Text(text = "Location Name") },
-
-            )
         Spacer(modifier = Modifier.height(16.dp))
-        Text(
-            text = "Location Description",
-            modifier = Modifier
-                .align(Alignment.CenterHorizontally)
-        )
         OutlinedTextField(
             value = locationDescription,
             onValueChange ={
@@ -128,48 +108,34 @@ fun EditLocationScreen( navController: NavHostController?, locationViewModel: Lo
                 focusManager.clearFocus()
             },
             label = { Text(text = "Location Description") },
+            modifier = Modifier.fillMaxWidth()
         )
 
         Row(
+            verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier
                 .fillMaxWidth()
                 .height(IntrinsicSize.Min)
                 .padding(16.dp)
         ) {
-            Button(
-                onClick = {
-                    isInputEnabled = false
-                    latitude = (location.value?.latitude ?: 0.0).toString()
-                    longitude = (location.value?.longitude ?: 0.0).toString()
-                    writenCoords = false
-                    validateForm()
-
+            Text(
+                text = "Get Coordinates",
+                textAlign = TextAlign.Center,
+                modifier = Modifier.padding(6.dp, 0.dp)
+            )
+            Switch(
+                checked = isInputEnabled,
+                onCheckedChange = {
+                    isInputEnabled = it
+                    writenCoords = it
                 },
-                modifier = Modifier
-                    .weight(1f)
-                    .height(96.dp)
-                    .padding(end = 8.dp),
-                colors = ButtonDefaults.buttonColors(MaterialTheme.colorScheme.primary),
-                shape = CutCornerShape(percent = 0)
-            ) {
-                Text(text = "Get coordinates from current location")
-            }
-
-            Button(
-                onClick = {
-                    isInputEnabled = true
-                    writenCoords = true
-                    validateForm()
-                },
-                modifier = Modifier
-                    .weight(1f)
-                    .height(96.dp)
-                    .padding(end = 8.dp),
-                colors = ButtonDefaults.buttonColors(MaterialTheme.colorScheme.primary),
-                shape = CutCornerShape(percent = 0)
-            ) {
-                Text(text = "Write coordinates")
-            }
+                modifier = Modifier.padding(4.dp, 0.dp)
+            )
+            Text(
+                text = "Write Coordinates",
+                textAlign = TextAlign.Center,
+                modifier = Modifier.padding(6.dp, 0.dp)
+            )
         }
 
         OutlinedTextField(
@@ -183,8 +149,12 @@ fun EditLocationScreen( navController: NavHostController?, locationViewModel: Lo
                 focusManager.moveFocus(FocusDirection.Next)
             },
             label = { Text(text = "Longitude") },
-            enabled = isInputEnabled
+            enabled = isInputEnabled,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(0.dp, 4.dp)
         )
+
         OutlinedTextField(
             value = latitude,
             onValueChange ={
@@ -196,8 +166,13 @@ fun EditLocationScreen( navController: NavHostController?, locationViewModel: Lo
                 focusManager.clearFocus()
             },
             label = { Text(text = "Latitude") },
-            enabled = isInputEnabled
+            enabled = isInputEnabled,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(0.dp, 4.dp)
         )
+        Spacer(modifier = Modifier.height(4.dp))
+
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -242,8 +217,5 @@ fun EditLocationScreen( navController: NavHostController?, locationViewModel: Lo
         ) {
             Text(text = "Submit")
         }
-
-
     }
-
 }
